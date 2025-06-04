@@ -135,7 +135,7 @@ static ssize_t handle_read(netdev_t *netdev,
         }
         break;
     }
-    case _(user):
+    case _(user): {
         net_user_options_t *usr = (net_user_options_t *) netdev->op;
 
         plen = readv(usr->channel[SLIRP_READ_SIDE], iovs_cursor, niovs);
@@ -151,6 +151,7 @@ static ssize_t handle_read(netdev_t *netdev,
         }
 
         break;
+    }
     default:
         break;
     }
@@ -180,7 +181,7 @@ static ssize_t handle_write(netdev_t *netdev,
         }
         break;
     }
-    case _(user):
+    case _(user): {
         net_user_options_t *usr = (net_user_options_t *) netdev->op;
 
         uint8_t pkt[1514];
@@ -196,6 +197,7 @@ static ssize_t handle_write(netdev_t *netdev,
         slirp_input(usr->slirp, pkt, plen);
 
         break;
+    }
     default:
         break;
     }
