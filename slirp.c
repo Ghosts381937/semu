@@ -108,7 +108,8 @@ static const SlirpCb slirp_cb = {
     .notify = net_slirp_notify,
 };
 
-static int poll_to_slirp_poll(int events)
+/* Convert poll(2) event mask to slirp event mask */
+static int poll_to_slirp_events(int events)
 {
     int ret = 0;
     if (events & POLLIN)
@@ -124,10 +125,27 @@ static int poll_to_slirp_poll(int events)
     return ret;
 }
 
+/* Convert slirp event mask back to poll(2) events */
+static int slirp_to_poll_events(int events)
+{
+    int ret = 0;
+    if (events & SLIRP_POLL_IN)
+        ret |= POLLIN;
+    if (events & SLIRP_POLL_OUT)
+        ret |= POLLOUT;
+    if (events & SLIRP_POLL_PRI)
+        ret |= POLLPRI;
+    if (events & SLIRP_POLL_ERR)
+        ret |= POLLERR;
+    if (events & SLIRP_POLL_HUP)
+        ret |= POLLHUP;
+    return ret;
+}
+
 int semu_slirp_get_revents(int idx, void *opaque)
 {
     net_user_options_t *usr = opaque;
-    return poll_to_slirp_poll(usr->pfd[idx].revents);
+    return poll_to_slirp_events(usr->pfd[idx].revents);
 }
 
 int semu_slirp_add_poll_socket(slirp_os_socket fd, int events, void *opaque)
@@ -145,7 +163,7 @@ int semu_slirp_add_poll_socket(slirp_os_socket fd, int events, void *opaque)
         int idx = usr->pfd_len++;
         usr->pfd[idx].fd = fd;
 
-        usr->pfd[idx].events = poll_to_slirp_poll(events);
+        usr->pfd[idx].events = slirp_to_poll_events(events);
         return idx;
     } else {
         return -1;
